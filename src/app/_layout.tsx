@@ -3,9 +3,7 @@
  */
 
 import { Stack } from "expo-router";
-import {
-  SafeAreaProvider
-} from "react-native-safe-area-context";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 export default function RootLayout() {
   return (
@@ -14,7 +12,28 @@ export default function RootLayout() {
         <Stack.Screen
           name="index"
           options={{
-            title: "Log In/Sign Up",
+            title: "Log In",
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="SignUp"
+          options={{
+            title: "Sign Up",
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="DatabaseScreen"
+          options={{
+            title: "Database",
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="CompaniesScreen"
+          options={{
+            title: "Companies",
             headerShown: false,
           }}
         />

@@ -1,21 +1,17 @@
-/*
- * Log In screen for the application.
- */
-
+import TextField from "@/components/TextField";
 import { useRouter } from "expo-router";
 import {
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  Text,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    Text,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
 } from "react-native";
-import TextField from "../components/TextField";
 import { globalStyles } from "../styles/global";
 
-export default function Index() {
+export default function SignUp() {
   const router = useRouter();
 
   return (
@@ -26,9 +22,25 @@ export default function Index() {
         keyboardVerticalOffset={Platform.OS === "ios" ? 20 : 0}
       >
         <View style={globalStyles.card}>
-          <Text style={globalStyles.cardTitle}>Log In</Text>
+          <Text style={globalStyles.cardTitle}>Sign Up</Text>
 
-          <TextField label="Username" placeholder="Username" />
+          <TextField
+            label="Name"
+            placeholder="First M. Last"
+            returnKeyType="next"
+          />
+
+          <TextField
+            label="Email"
+            placeholder="email@example.com"
+            returnKeyType="next"
+          />
+
+          <TextField
+            label="Username"
+            placeholder="Username"
+            returnKeyType="next"
+          />
 
           <TextField
             label="Password"
@@ -37,29 +49,27 @@ export default function Index() {
             returnKeyType="done"
           />
 
-          <TouchableOpacity style={globalStyles.linkButton}>
-            <Text style={globalStyles.linkText}>Forgot password?</Text>
-          </TouchableOpacity>
-
           <View style={globalStyles.formSpacer} />
 
           <TouchableOpacity
             style={globalStyles.primaryButton}
             onPress={() => {
-              // Handle the Log In action here
+              // Handle the Sign Up action here
               router.push("/CompaniesScreen");
             }}
           >
-            <Text style={globalStyles.primaryButtonText}>Log In</Text>
+            <Text style={globalStyles.primaryButtonText}>Sign Up</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => {
-              // Navigate to the Sign Up screen
-              router.push("/SignUp");
+              // Navigate to the Log In screen
+              router.canGoBack() && router.back();
             }}
           >
-            <Text style={globalStyles.signUpText}>Sign Up</Text>
+            <Text style={globalStyles.signUpText}>
+              I already have an account
+            </Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
