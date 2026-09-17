@@ -30,13 +30,6 @@ export default function RootLayout() {
             headerShown: false,
           }}
         />
-        <Stack.Screen
-          name="CompaniesScreen"
-          options={{
-            title: "Companies",
-            headerShown: false,
-          }}
-        />
       </Stack>
     </SafeAreaProvider>
   );

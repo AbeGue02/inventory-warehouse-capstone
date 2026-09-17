@@ -47,7 +47,7 @@ export default function Index() {
             style={globalStyles.primaryButton}
             onPress={() => {
               // Handle the Log In action here
-              router.push("/CompaniesScreen");
+              router.push("/DatabaseScreen");
             }}
           >
             <Text style={globalStyles.primaryButtonText}>Log In</Text>

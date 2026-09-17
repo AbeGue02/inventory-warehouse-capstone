@@ -55,7 +55,7 @@ export default function SignUp() {
             style={globalStyles.primaryButton}
             onPress={() => {
               // Handle the Sign Up action here
-              router.push("/CompaniesScreen");
+              router.push("/DatabaseScreen");
             }}
           >
             <Text style={globalStyles.primaryButtonText}>Sign Up</Text>
