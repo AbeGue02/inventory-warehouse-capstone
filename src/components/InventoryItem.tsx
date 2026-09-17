@@ -10,10 +10,13 @@ export default function InventoryItem(props: {
   name: string;
   sku: string;
   quantity: number;
+  onPress: () => void;
 }) {
   return (
-    // TODO: Implement inventory item edit modal
-    <TouchableOpacity style={globalStyles.inventoryItem}>
+    <TouchableOpacity
+      style={globalStyles.inventoryItem}
+      onPress={props.onPress}
+    >
       <View>
         <Text>{props.name}</Text>
         <Text>{props.sku}</Text>

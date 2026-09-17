@@ -4,6 +4,8 @@ import { globalStyles } from "../styles/global";
 export default function TextField(props: {
   label: string;
   placeholder: string;
+  value?: string;
+  editable?: boolean;
   returnKeyType?: "next" | "done";
   secureTextEntry?: boolean;
 }) {
@@ -13,6 +15,8 @@ export default function TextField(props: {
       <TextInput
         style={globalStyles.textField}
         placeholder={props.placeholder}
+        value={props.value}
+        editable={props.editable ?? true}
         placeholderTextColor="#ccc"
         autoCapitalize="none"
         autoCorrect={false}
