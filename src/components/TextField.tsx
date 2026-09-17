@@ -1,3 +1,9 @@
+/**
+ * TextField component
+ * A reusable text input field with a label.
+ * Made to keep other components clean and consistent
+ */
+
 import { Text, TextInput, View } from "react-native";
 import { globalStyles } from "../styles/global";
 

@@ -87,7 +87,7 @@ export default function DatabaseScreen() {
                   onPress={() => openItem(item)}
                 />
               )}
-              keyExtractor={(item) => item.sku.toString()}
+              keyExtractor={(item) => item.sku}
             />
 
             {/* 
