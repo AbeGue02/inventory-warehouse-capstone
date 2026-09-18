@@ -40,14 +40,14 @@ const inventoryData: InventoryItemInterface[] = [
 ];
 
 export default function DatabaseScreen() {
-  const [items, setItems] = useState<InventoryItemInterface[]>(inventoryData);
+  const [items, setItems] = useState<InventoryItemInterface[]>(inventoryData); // State to hold the list of inventory items.
   const [selectedItem, setSelectedItem] =
-    useState<InventoryItemInterface | null>(null);
+    useState<InventoryItemInterface | null>(null); // State to hold the currently selected inventory item for editing.
   const [draftItem, setDraftItem] = useState<InventoryItemInterface | null>({
     name: "",
     sku: "",
     quantity: 0,
-  });
+  }); // State to hold a draft copy of the selected inventory item being edited.
 
   // Open an inventory item for editing.
   const openItem = (item: InventoryItemInterface) => {
@@ -57,11 +57,13 @@ export default function DatabaseScreen() {
 
   // Save the changes made to the draft item back to the inventory list.
   const saveItem = () => {
-    if (!selectedItem || !draftItem) return; // Ensure both selected and draft items exist before saving.
+    // Ensure both selected and draft items exist before saving.
+    if (!selectedItem || !draftItem) return;
 
+    // Update the item if it matches the selected item's SKU.
     setItems((currentItems) =>
-      currentItems.map(
-        (item) => (item.sku === selectedItem.sku ? { ...draftItem } : item), // Update the item if it matches the selected item's SKU.
+      currentItems.map((item) =>
+        item.sku === selectedItem.sku ? { ...draftItem } : item,
       ),
     );
 

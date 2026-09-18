@@ -5,10 +5,12 @@
 
 import { Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuth } from "../context/AuthContext";
 import { globalStyles } from "../styles/global";
 
 export default function DatabaseScreenHeader() {
   const insets = useSafeAreaInsets();
+  const { logout } = useAuth();
 
   return (
     <View
@@ -18,6 +20,15 @@ export default function DatabaseScreenHeader() {
       <TouchableOpacity style={globalStyles.databaseSelectButton}>
         <Text style={{ color: "white", fontSize: 20, fontWeight: "bold" }}>
           Database
+        </Text>
+      </TouchableOpacity>
+      <View style={{ flex: 1 }} />
+      <TouchableOpacity
+        onPress={logout}
+        style={globalStyles.databaseLogOutButton}
+      >
+        <Text style={{ color: "white", fontSize: 20, fontWeight: "bold" }}>
+          Log Out
         </Text>
       </TouchableOpacity>
     </View>

@@ -112,8 +112,9 @@ export const globalStyles = StyleSheet.create({
   },
   databaseScreenHeader: {
     width: "100%",
+    flexDirection: "row",
     backgroundColor: colors.primary,
-    justifyContent: "center",
+    justifyContent: "space-around",
     alignItems: "center",
     shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 2 },
@@ -121,12 +122,19 @@ export const globalStyles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  databaseSelectButton: {
-    width: "80%",
+  databaseLogOutButton: {
     backgroundColor: colors.primary,
     borderRadius: 10,
     justifyContent: "center",
-    alignItems: "flex-start",
+    alignItems: "center",
+    padding: 10,
+    marginVertical: 10,
+  },
+  databaseSelectButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
     padding: 10,
     marginVertical: 10,
   },

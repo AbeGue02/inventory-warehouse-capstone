@@ -1,18 +1,20 @@
 import TextField from "@/components/TextField";
+import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "expo-router";
 import {
-    Keyboard,
-    KeyboardAvoidingView,
-    Platform,
-    Text,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 import { globalStyles } from "../styles/global";
 
 export default function SignUp() {
   const router = useRouter();
+  const { login } = useAuth();
 
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -55,7 +57,8 @@ export default function SignUp() {
             style={globalStyles.primaryButton}
             onPress={() => {
               // Handle the Sign Up action here
-              router.push("/DatabaseScreen");
+              login();
+              router.replace("/DatabaseScreen");
             }}
           >
             <Text style={globalStyles.primaryButtonText}>Sign Up</Text>
@@ -64,7 +67,7 @@ export default function SignUp() {
           <TouchableOpacity
             onPress={() => {
               // Navigate to the Log In screen
-              router.canGoBack() && router.back();
+              router.replace("/");
             }}
           >
             <Text style={globalStyles.signUpText}>

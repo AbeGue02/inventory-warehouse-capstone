@@ -2,6 +2,7 @@
  * Log In screen for the application.
  */
 
+import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "expo-router";
 import {
   Keyboard,
@@ -16,7 +17,8 @@ import TextField from "../components/TextField";
 import { globalStyles } from "../styles/global";
 
 export default function Index() {
-  const router = useRouter();
+  const router = useRouter(); // Extracts the router object for navigation within the application.
+  const { login } = useAuth(); // Extracts the login function from the authentication context.
 
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -47,7 +49,8 @@ export default function Index() {
             style={globalStyles.primaryButton}
             onPress={() => {
               // Handle the Log In action here
-              router.push("/DatabaseScreen");
+              login();
+              // router.replace("/DatabaseScreen");
             }}
           >
             <Text style={globalStyles.primaryButtonText}>Log In</Text>
@@ -56,7 +59,7 @@ export default function Index() {
           <TouchableOpacity
             onPress={() => {
               // Navigate to the Sign Up screen
-              router.push("/SignUp");
+              router.replace("/SignUp");
             }}
           >
             <Text style={globalStyles.signUpText}>Sign Up</Text>
