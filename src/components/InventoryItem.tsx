@@ -3,13 +3,12 @@
  * Represents a single inventory item in the inventory list.
  */
 
+import InventoryItem from "@/interfaces/InventoryItem";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import { globalStyles } from "../styles/global";
 
 export default function InventoryItem(props: {
-  name: string;
-  sku: string;
-  quantity: number;
+  item: InventoryItem;
   onPress: () => void;
 }) {
   return (
@@ -18,8 +17,8 @@ export default function InventoryItem(props: {
       onPress={props.onPress}
     >
       <View>
-        <Text>{props.name}</Text>
-        <Text>{props.sku}</Text>
+        <Text>{props.item.name}</Text>
+        <Text>{props.item.sku}</Text>
       </View>
 
       <View style={{ flexDirection: "row" }}>
@@ -30,7 +29,7 @@ export default function InventoryItem(props: {
 
         {/* TODO: Implement functionality to directly edit the quantity via the text input */}
         <TextInput
-          value={props.quantity.toString()}
+          value={props.item.quantity.toString()}
           keyboardType="numeric"
           style={globalStyles.numericTextField}
         />

@@ -82,12 +82,7 @@ export default function DatabaseScreen() {
               style={globalStyles.databaseList}
               data={items}
               renderItem={({ item }) => (
-                <InventoryItem
-                  name={item.name}
-                  sku={item.sku}
-                  quantity={item.quantity}
-                  onPress={() => openItem(item)}
-                />
+                <InventoryItem item={item} onPress={() => openItem(item)} />
               )}
               keyExtractor={(item) => item.sku}
             />
