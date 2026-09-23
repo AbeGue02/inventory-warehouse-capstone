@@ -10,7 +10,31 @@ Keep your business organized with Inventory Warehouse, a simple and secure way f
    npm install
    ```
 
-2. Start the app
+2. Start your local MongoDB server
+
+   ```bash
+   brew services start mongodb-community
+   ```
+
+   Verify that MongoDB is available:
+
+   ```bash
+   mongosh
+   ```
+
+   Create a `.env` file in the project root with:
+
+   ```bash
+   MONGODB_URI=mongodb://127.0.0.1:27017/InventoryWarehouse
+   ```
+
+3. Seed the database
+
+   ```bash
+   npx tsx src/seed.ts
+   ```
+
+4. Start the app
 
    ```bash
    npx expo start
