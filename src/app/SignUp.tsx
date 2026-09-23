@@ -1,7 +1,4 @@
-/*
- * Log In screen for the application.
- */
-
+import TextField from "@/components/TextField";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "expo-router";
 import {
@@ -13,12 +10,11 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import TextField from "../components/TextField";
 import { globalStyles } from "../styles/global";
 
-export default function Index() {
-  const router = useRouter(); // Extracts the router object for navigation within the application.
-  const { login } = useAuth(); // Extracts the login function from the authentication context.
+export default function SignUp() {
+  const router = useRouter();
+  const { login } = useAuth();
 
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -28,9 +24,25 @@ export default function Index() {
         keyboardVerticalOffset={Platform.OS === "ios" ? 20 : 0}
       >
         <View style={globalStyles.card}>
-          <Text style={globalStyles.cardTitle}>Log In</Text>
+          <Text style={globalStyles.cardTitle}>Sign Up</Text>
 
-          <TextField label="Username" placeholder="Username" />
+          <TextField
+            label="Name"
+            placeholder="First M. Last"
+            returnKeyType="next"
+          />
+
+          <TextField
+            label="Email"
+            placeholder="email@example.com"
+            returnKeyType="next"
+          />
+
+          <TextField
+            label="Username"
+            placeholder="Username"
+            returnKeyType="next"
+          />
 
           <TextField
             label="Password"
@@ -39,30 +51,28 @@ export default function Index() {
             returnKeyType="done"
           />
 
-          <TouchableOpacity style={globalStyles.linkButton}>
-            <Text style={globalStyles.linkText}>Forgot password?</Text>
-          </TouchableOpacity>
-
           <View style={globalStyles.formSpacer} />
 
           <TouchableOpacity
             style={globalStyles.primaryButton}
             onPress={() => {
-              // Handle the Log In action here
+              // Handle the Sign Up action here
               login();
-              // router.replace("/DatabaseScreen");
+              router.replace("/DatabaseScreen");
             }}
           >
-            <Text style={globalStyles.primaryButtonText}>Log In</Text>
+            <Text style={globalStyles.primaryButtonText}>Sign Up</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => {
-              // Navigate to the Sign Up screen
-              router.replace("/SignUp");
+              // Navigate to the Log In screen
+              router.replace("/");
             }}
           >
-            <Text style={globalStyles.signUpText}>Sign Up</Text>
+            <Text style={globalStyles.signUpText}>
+              I already have an account
+            </Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
