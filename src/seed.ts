@@ -35,7 +35,7 @@ async function seed() {
     employees: [],
   });
 
-  const items = Array.from({ length: 1000 }, (_, i) => ({
+  const items = Array.from({ length: 10000 }, (_, i) => ({
     name: `Item ${i + 1}`,
     sku: `SKU${i + 1}`,
     quantity: Math.floor(Math.random() * 50) + 1,

@@ -9,12 +9,14 @@ import InventoryItem from "@/components/InventoryItem";
 import TextField from "@/components/TextField";
 import type InventoryItemInterface from "@/interfaces/InventoryItem";
 import { FlashList } from "@shopify/flash-list";
-import { useEffect, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Button,
   Keyboard,
   Modal,
   Text,
+  TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
@@ -22,7 +24,7 @@ import {
 import { globalStyles } from "../styles/global";
 
 export default function DatabaseScreen() {
-  const [isFetchingItems, setIsFetchingItems] = useState(true); // State to track if items are being fetched.
+  const [isFetchingItems, setIsFetchingItems] = useState<boolean>(true); // State to track if items are being fetched.
   const [items, setItems] = useState<InventoryItemInterface[]>([]); // State to hold the list of inventory items.
   const [selectedItem, setSelectedItem] =
     useState<InventoryItemInterface | null>(null); // State to hold the currently selected inventory item for editing.
@@ -31,8 +33,66 @@ export default function DatabaseScreen() {
     sku: "",
     quantity: 0,
   }); // State to hold a draft copy of the selected inventory item being edited.
+  const [searchBarText, setSearchBarText] = useState<string>(""); // State to hold the text entered in the search bar.
+
+  // Use a deferred value for the search bar text to improve performance during typing.
+  // This deferred value will lag behind the actual search bar text,
+  // allowing the UI to remain responsive during typing.
+  const deferredSearchBarText = useDeferredValue(searchBarText);
+  const isSearchingItems = deferredSearchBarText !== searchBarText;
+
+  // Create a map of items by their SKU for quick lookup.
+  // Mapping the items causes the application to have a O(1) lookup time for SKUs instead of O(n).
+  const itemsBySku = useMemo(
+    () => new Map(items.map((item) => [item.sku.toLowerCase(), item])),
+    [items],
+  );
+
+  // When searching, search for both item names and exact SKU matches
+  // Return both the exact match (if any) and other matches separately.
+  const searchResults = useMemo(() => {
+    const query = deferredSearchBarText.trim().toLowerCase();
+
+    // if the search bar is empty, return all items as other matches.
+    if (query === "") {
+      return { exactMatch: null, otherMatches: items };
+    }
+
+    const exactMatch = itemsBySku.get(query) ?? null; // Get the exact match by SKU if it exists.
+    const otherMatches = items.filter(
+      // Filter out the exact match and include items whose names contain the query.
+      (item) => item !== exactMatch && item.name.toLowerCase().includes(query),
+    );
+
+    return { exactMatch, otherMatches };
+  }, [deferredSearchBarText, items, itemsBySku]);
+
+  const isSearching = deferredSearchBarText.trim().length > 0; // Determine if the user is currently searching based on the search bar text.
+  const visibleItems = isSearching // If searching, show the exact match followed by other matches. Otherwise, show all items.
+    ? [
+        ...(searchResults.exactMatch ? [searchResults.exactMatch] : []),
+        ...searchResults.otherMatches,
+      ]
+    : searchResults.otherMatches;
+
+  const exactMatch = searchResults.exactMatch; // Extract the exact match from the search results for easier access.
+  const searchHeader = isSearching ? ( // Render the search header only when the user is searching.
+    <View style={globalStyles.searchHeader}>
+      {exactMatch && (
+        <>
+          <Text>Exact Match:</Text>
+          <InventoryItem
+            item={exactMatch}
+            onPress={() => openItem(exactMatch)}
+          />
+        </>
+      )}
+      {searchResults.otherMatches.length > 0 && <Text>Search Results:</Text>}
+    </View>
+  ) : null;
 
   useEffect(() => {
+    // Fetch inventory items when the component mounts
     async function fetchData() {
       const response = await fetch("/api/items");
       const data = await response.json();
@@ -71,16 +131,31 @@ export default function DatabaseScreen() {
       <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
         <View style={globalStyles.databaseScreen}>
           <DatabaseScreenHeader />
+          <View style={globalStyles.searchBarContainer}>
+            <TextInput
+              style={globalStyles.searchBar}
+              value={searchBarText}
+              onChangeText={setSearchBarText}
+              placeholder="Search items and SKUs..."
+            />
+            <Button
+              title="Sort"
+              onPress={() => {
+                // TODO: Implement sort functionality here
+              }}
+            />
+          </View>
           <View style={globalStyles.databaseScreenContent}>
-            {isFetchingItems ? ( // Are Items Being Fetched or Available?
+            {isFetchingItems || isSearchingItems ? ( // Are Items Being fetched or searched through?
               <ActivityIndicator size="large" color="#aaa" />
-            ) : items.length === 0 ? ( // No items available
+            ) : visibleItems.length === 0 ? ( // No items available ?
               <Text style={globalStyles.noItemsText}>No items available.</Text>
             ) : (
-              // Items are available and ready to be displayed
+              // Items available!
               <FlashList
                 style={globalStyles.databaseList}
-                data={items}
+                data={isSearching ? searchResults.otherMatches : visibleItems}
+                ListHeaderComponent={searchHeader}
                 renderItem={({ item }) => (
                   <InventoryItem item={item} onPress={() => openItem(item)} />
                 )}
