@@ -9,38 +9,21 @@ import InventoryItem from "@/components/InventoryItem";
 import TextField from "@/components/TextField";
 import type InventoryItemInterface from "@/interfaces/InventoryItem";
 import { FlashList } from "@shopify/flash-list";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
-    Keyboard,
-    Modal,
-    Text,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  ActivityIndicator,
+  Keyboard,
+  Modal,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 import { globalStyles } from "../styles/global";
 
-// TODO: Replace the static inventory data with data fetched from the selected company's database.
-const inventoryData: InventoryItemInterface[] = [
-  { name: "Item 1", sku: "SKU1", quantity: 10 },
-  { name: "Item 2", sku: "SKU2", quantity: 5 },
-  { name: "Item 3", sku: "SKU3", quantity: 8 },
-  { name: "Item 4", sku: "SKU4", quantity: 12 },
-  { name: "Item 5", sku: "SKU5", quantity: 7 },
-  { name: "Item 6", sku: "SKU6", quantity: 3 },
-  { name: "Item 7", sku: "SKU7", quantity: 9 },
-  { name: "Item 8", sku: "SKU8", quantity: 4 },
-  { name: "Item 9", sku: "SKU9", quantity: 6 },
-  { name: "Item 10", sku: "SKU10", quantity: 11 },
-  { name: "Item 11", sku: "SKU11", quantity: 2 },
-  { name: "Item 12", sku: "SKU12", quantity: 14 },
-  { name: "Item 13", sku: "SKU13", quantity: 5 },
-  { name: "Item 14", sku: "SKU14", quantity: 8 },
-  { name: "Item 15", sku: "SKU15", quantity: 10 },
-];
-
 export default function DatabaseScreen() {
-  const [items, setItems] = useState<InventoryItemInterface[]>(inventoryData); // State to hold the list of inventory items.
+  const [isFetchingItems, setIsFetchingItems] = useState(true); // State to track if items are being fetched.
+  const [items, setItems] = useState<InventoryItemInterface[]>([]); // State to hold the list of inventory items.
   const [selectedItem, setSelectedItem] =
     useState<InventoryItemInterface | null>(null); // State to hold the currently selected inventory item for editing.
   const [draftItem, setDraftItem] = useState<InventoryItemInterface | null>({
@@ -48,6 +31,17 @@ export default function DatabaseScreen() {
     sku: "",
     quantity: 0,
   }); // State to hold a draft copy of the selected inventory item being edited.
+
+  useEffect(() => {
+    async function fetchData() {
+      const response = await fetch("/api/items");
+      const data = await response.json();
+      setItems(data);
+      setIsFetchingItems(false);
+    }
+
+    fetchData();
+  }, []);
 
   // Open an inventory item for editing.
   const openItem = (item: InventoryItemInterface) => {
@@ -78,14 +72,21 @@ export default function DatabaseScreen() {
         <View style={globalStyles.databaseScreen}>
           <DatabaseScreenHeader />
           <View style={globalStyles.databaseScreenContent}>
-            <FlashList
-              style={globalStyles.databaseList}
-              data={items}
-              renderItem={({ item }) => (
-                <InventoryItem item={item} onPress={() => openItem(item)} />
-              )}
-              keyExtractor={(item) => item.sku}
-            />
+            {isFetchingItems ? ( // Are Items Being Fetched or Available?
+              <ActivityIndicator size="large" color="#aaa" />
+            ) : items.length === 0 ? ( // No items available
+              <Text style={globalStyles.noItemsText}>No items available.</Text>
+            ) : (
+              // Items are available and ready to be displayed
+              <FlashList
+                style={globalStyles.databaseList}
+                data={items}
+                renderItem={({ item }) => (
+                  <InventoryItem item={item} onPress={() => openItem(item)} />
+                )}
+                keyExtractor={(item) => item.sku}
+              />
+            )}
 
             {/* 
                 Inventory item edit modal

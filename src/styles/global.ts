@@ -34,6 +34,11 @@ export const globalStyles = StyleSheet.create({
     flex: 1,
     width: "100%",
   },
+  noItemsText: {
+    textAlign: "center",
+    marginVertical: 20,
+    color: colors.text,
+  },
   card: {
     width: "80%",
     justifyContent: "space-between",
