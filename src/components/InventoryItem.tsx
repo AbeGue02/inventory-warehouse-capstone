@@ -3,12 +3,12 @@
  * Represents a single inventory item in the inventory list.
  */
 
-import InventoryItem from "@/interfaces/InventoryItem";
+import InventoryItemInterface from "@/interfaces/InventoryItem";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import { globalStyles } from "../styles/global";
 
 export default function InventoryItem(props: {
-  item: InventoryItem;
+  item: InventoryItemInterface;
   onPress: () => void;
 }) {
   return (
