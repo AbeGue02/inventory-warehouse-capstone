@@ -31,7 +31,7 @@ export const globalStyles = StyleSheet.create({
   databaseList: {
     flex: 1,
     width: "100%",
-    padding: 10,
+    paddingVertical: 10,
   },
   noItemsText: {
     textAlign: "center",
@@ -216,7 +216,6 @@ export const globalStyles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    width: "100%",
     padding: 10,
     backgroundColor: colors.surface,
     borderRadius: 10,
@@ -225,7 +224,7 @@ export const globalStyles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 5,
-    marginVertical: 5,
+    margin: 5,
   },
   modalOverlay: {
     flex: 1,
