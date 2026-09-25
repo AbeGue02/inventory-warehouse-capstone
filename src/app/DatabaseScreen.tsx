@@ -5,8 +5,10 @@
  */
 
 import DatabaseScreenHeader from "@/components/DatabaseScreenHeader";
+import EditItemModal from "@/components/EditItemModal";
 import InventoryItem from "@/components/InventoryItem";
-import TextField from "@/components/TextField";
+import type { SortBy } from "@/components/SortMenuModal";
+import SortMenuModal from "@/components/SortMenuModal";
 import type InventoryItemInterface from "@/interfaces/InventoryItem";
 import { FlashList } from "@shopify/flash-list";
 import { SymbolView } from "expo-symbols";
@@ -14,32 +16,13 @@ import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Keyboard,
-  Modal,
   Pressable,
   Text,
   TextInput,
-  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { colors, globalStyles } from "../styles/global";
-
-// Sorting options
-type SortBy = "alphabetical" | "newest" | "quantity";
-
-//Sorting labels for each sort type
-const SORT_LABELS: Record<SortBy, string> = {
-  alphabetical: "Alphabetical",
-  newest: "Newest",
-  quantity: "Quantity",
-};
-
-// Reverse labels for each sort type
-const REVERSE_LABELS: Record<SortBy, [string, string]> = {
-  alphabetical: ["A → Z", "Z → A"],
-  newest: ["Newest First", "Oldest First"],
-  quantity: ["Low → High", "High → Low"],
-};
 
 export default function DatabaseScreen() {
   const [isFetchingItems, setIsFetchingItems] = useState<boolean>(true); // State to track if items are being fetched.
@@ -226,109 +209,21 @@ export default function DatabaseScreen() {
                 Inventory item edit modal
                 Only renders when an inventory item is selected for editing.
             */}
-            <Modal
+            <EditItemModal
               visible={selectedItem !== null}
-              transparent
-              animationType="slide"
-              onRequestClose={() => setSelectedItem(null)}
-            >
-              <TouchableWithoutFeedback
-                onPress={() => {
-                  setSelectedItem(null);
-                  Keyboard.dismiss();
-                }}
-              >
-                <View style={globalStyles.modalOverlay}>
-                  <View style={globalStyles.modalCard}>
-                    <Text style={globalStyles.modalTitle}>
-                      Edit Inventory Item
-                    </Text>
+              draftItem={draftItem}
+              onCancel={() => setSelectedItem(null)}
+              onSave={saveItem}
+            />
 
-                    <TextField
-                      label="Name"
-                      placeholder="Item name"
-                      value={draftItem?.name}
-                    />
-
-                    <TextField
-                      label="SKU"
-                      placeholder="SKU"
-                      value={draftItem?.sku}
-                    />
-
-                    <TextField
-                      label="Quantity"
-                      placeholder="Quantity"
-                      value={draftItem?.quantity.toString()}
-                    />
-
-                    <View style={globalStyles.modalActions}>
-                      <TouchableOpacity
-                        style={globalStyles.modalCancelButton}
-                        onPress={() => setSelectedItem(null)}
-                      >
-                        <Text style={globalStyles.modalCancelText}>Cancel</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={globalStyles.modalSaveButton}
-                        onPress={saveItem}
-                      >
-                        <Text style={globalStyles.modalSaveText}>Save</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </View>
-              </TouchableWithoutFeedback>
-            </Modal>
-
-            {/* Sort Menu Modal */}
-
-            <Modal
+            <SortMenuModal
               visible={isSortMenuOpen}
-              transparent
-              animationType="fade"
-              onRequestClose={() => setIsSortMenuOpen(false)}
-            >
-              <TouchableWithoutFeedback
-                onPress={() => setIsSortMenuOpen(false)}
-              >
-                <View style={globalStyles.sortMenuOverlay}>
-                  <TouchableWithoutFeedback>
-                    <View style={globalStyles.sortMenu}>
-                      {/* Sort options */}
-                      {(Object.keys(SORT_LABELS) as SortBy[]).map((option) => (
-                        <Pressable
-                          key={option}
-                          style={globalStyles.sortMenuOption}
-                          onPress={() => setSortBy(option)}
-                        >
-                          <Text
-                            style={[
-                              globalStyles.sortMenuOptionText,
-                              sortBy === option &&
-                                globalStyles.sortMenuOptionTextSelected,
-                            ]}
-                          >
-                            {SORT_LABELS[option]}
-                          </Text>
-                        </Pressable>
-                      ))}
-
-                      <View style={globalStyles.sortMenuDivider} />
-
-                      <Pressable
-                        style={globalStyles.sortMenuOption}
-                        onPress={() => setIsReversed((current) => !current)}
-                      >
-                        <Text style={globalStyles.sortMenuDirectionText}>
-                          {REVERSE_LABELS[sortBy][isReversed ? 1 : 0]}
-                        </Text>
-                      </Pressable>
-                    </View>
-                  </TouchableWithoutFeedback>
-                </View>
-              </TouchableWithoutFeedback>
-            </Modal>
+              sortBy={sortBy}
+              isReversed={isReversed}
+              onSelectSortBy={setSortBy}
+              onToggleReversed={() => setIsReversed((current) => !current)}
+              onClose={() => setIsSortMenuOpen(false)}
+            />
           </View>
         </View>
       </TouchableWithoutFeedback>
