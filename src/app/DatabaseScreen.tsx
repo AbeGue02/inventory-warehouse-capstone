@@ -4,6 +4,7 @@
  * Additionally allows the user to choose which company they interact with.
  */
 
+import AddItemButton from "@/components/AddItemButton";
 import DatabaseScreenHeader from "@/components/DatabaseScreenHeader";
 import EditItemModal from "@/components/EditItemModal";
 import InventoryItem from "@/components/InventoryItem";
@@ -135,28 +136,51 @@ export default function DatabaseScreen() {
   };
 
   // Save the changes made to the draft item back to the inventory list.
-  const saveItem = () => {
-    // Ensure both selected and draft items exist before saving.
-    if (!selectedItem || !draftItem) return;
+  const saveItem = async () => {
+    if (!draftItem) return; // Ensure the draft item exists before proceeding.
 
-    // Update the item if it matches the selected item's SKU.
-    setItems((currentItems) =>
-      currentItems.map((item) =>
-        item.sku === selectedItem.sku ? { ...draftItem } : item,
-      ),
+    const itemId = selectedItem?._id; // Get the ID of the selected item, if it exists.
+    const creating = !itemId; // Determine if we are creating a new item (no ID) or updating an existing one.
+
+    const response = await fetch(
+      // Shapes API request URL based on whether we are creating or updating an item.
+      creating ? "/api/items" : `/api/items?id=${encodeURIComponent(itemId)}`,
+      {
+        method: creating ? "POST" : "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: draftItem.name,
+          sku: draftItem.sku,
+          quantity: Number(draftItem.quantity),
+          company: draftItem.companyId,
+        }),
+      },
     );
 
-    // Clear the selected and draft items after saving.
-    setSelectedItem(null);
+    const result = await response.json();
 
-    // TODO: Add Company ID handling here.
-    setDraftItem({
-      name: "",
-      sku: "",
-      quantity: 0,
-      createdAt: new Date().toISOString(),
-      companyId: "",
-    });
+    if (!response.ok) {
+      console.error("Failed to save item:", result.error);
+      return;
+    }
+
+    const savedItem: InventoryItemInterface = {
+      _id: result._id,
+      name: result.name,
+      sku: result.sku,
+      quantity: result.quantity,
+      createdAt: result.createdAt,
+      companyId: result.company, // TODO: ADD COMPANY CONTEXT LOGIC FOR CREATING OBJECTS
+    };
+
+    setItems((currentItems) =>
+      creating
+        ? [...currentItems, savedItem]
+        : currentItems.map((item) => (item._id === itemId ? savedItem : item)),
+    );
+
+    setSelectedItem(null);
+    setDraftItem(null);
   };
 
   return (
@@ -164,6 +188,17 @@ export default function DatabaseScreen() {
       <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
         <View style={globalStyles.databaseScreen}>
           <DatabaseScreenHeader />
+          <AddItemButton
+            onPress={() =>
+              openItem({
+                name: "",
+                sku: "",
+                quantity: 0,
+                createdAt: new Date().toISOString(),
+                companyId: "",
+              })
+            }
+          />
           <View style={globalStyles.searchBarContainer}>
             <TextInput
               style={globalStyles.searchBar}
@@ -214,8 +249,13 @@ export default function DatabaseScreen() {
               draftItem={draftItem}
               onCancel={() => setSelectedItem(null)}
               onSave={saveItem}
+              onChangeDraftItem={setDraftItem}
             />
 
+            {/* 
+                Sort menu modal 
+                Only renders when the sort menu is open. 
+            */}
             <SortMenuModal
               visible={isSortMenuOpen}
               sortBy={sortBy}

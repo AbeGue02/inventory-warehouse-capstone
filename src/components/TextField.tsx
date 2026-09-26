@@ -14,6 +14,7 @@ export default function TextField(props: {
   editable?: boolean;
   returnKeyType?: "next" | "done";
   secureTextEntry?: boolean;
+  onChangeText?: (text: string) => void;
 }) {
   return (
     <View style={globalStyles.formGroup}>
@@ -28,6 +29,7 @@ export default function TextField(props: {
         autoCorrect={false}
         returnKeyType={props.returnKeyType || "next"}
         secureTextEntry={props.secureTextEntry || false}
+        onChangeText={props.onChangeText}
       />
     </View>
   );

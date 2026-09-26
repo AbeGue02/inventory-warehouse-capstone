@@ -32,3 +32,25 @@ export async function POST(request: Request) {
     return Response.json({ error: "Failed to create item" }, { status: 500 });
   }
 }
+
+// PUT handler for updating an existing item in the database
+// PUT /api/items/:id
+export async function PUT(request: Request) {
+  try {
+    await connectDB();
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+    if (!id) {
+      return Response.json({ error: "Item ID is required" }, { status: 400 });
+    }
+    const body = await request.json();
+    const updatedItem = await Item.findByIdAndUpdate(id, body, { new: true });
+    if (!updatedItem) {
+      return Response.json({ error: "Item not found" }, { status: 404 });
+    }
+    return Response.json(updatedItem);
+  } catch (err) {
+    console.error("PUT /api/items failed:", err);
+    return Response.json({ error: "Failed to update item" }, { status: 500 });
+  }
+}

@@ -5,12 +5,12 @@
 
 import type InventoryItemInterface from "@/interfaces/InventoryItem";
 import {
-    Keyboard,
-    Modal,
-    Text,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  Keyboard,
+  Modal,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 import { globalStyles } from "../styles/global";
 import TextField from "./TextField";
@@ -20,6 +20,7 @@ export default function EditItemModal(props: {
   draftItem: InventoryItemInterface | null;
   onCancel: () => void;
   onSave: () => void;
+  onChangeDraftItem: (draftItem: InventoryItemInterface) => void;
 }) {
   return (
     <Modal
@@ -42,18 +43,36 @@ export default function EditItemModal(props: {
               label="Name"
               placeholder="Item name"
               value={props.draftItem?.name}
+              onChangeText={(text) => {
+                if (props.draftItem) {
+                  props.onChangeDraftItem({ ...props.draftItem, name: text });
+                }
+              }}
             />
 
             <TextField
               label="SKU"
               placeholder="SKU"
               value={props.draftItem?.sku}
+              onChangeText={(text) => {
+                if (props.draftItem) {
+                  props.onChangeDraftItem({ ...props.draftItem, sku: text });
+                }
+              }}
             />
 
             <TextField
               label="Quantity"
               placeholder="Quantity"
               value={props.draftItem?.quantity.toString()}
+              onChangeText={(text) => {
+                if (props.draftItem) {
+                  const quantity = parseInt(text);
+                  if (!isNaN(quantity)) {
+                    props.onChangeDraftItem({ ...props.draftItem, quantity });
+                  }
+                }
+              }}
             />
 
             <View style={globalStyles.modalActions}>
