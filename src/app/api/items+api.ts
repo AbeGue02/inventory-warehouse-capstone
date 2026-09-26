@@ -54,3 +54,24 @@ export async function PUT(request: Request) {
     return Response.json({ error: "Failed to update item" }, { status: 500 });
   }
 }
+
+// DELETE handler for removing an item from the database
+// DELETE /api/items/:id
+export async function DELETE(request: Request) {
+  try {
+    await connectDB();
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+    if (!id) {
+      return Response.json({ error: "Item ID is required" }, { status: 400 });
+    }
+    const deletedItem = await Item.findByIdAndDelete(id);
+    if (!deletedItem) {
+      return Response.json({ error: "Item not found" }, { status: 404 });
+    }
+    return Response.json(deletedItem);
+  } catch (err) {
+    console.error("DELETE /api/items failed:", err);
+    return Response.json({ error: "Failed to delete item" }, { status: 500 });
+  }
+}

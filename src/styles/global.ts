@@ -7,6 +7,7 @@ export const colors = {
   mutedText: "#ccc",
   onPrimary: "white",
   shadow: "#000",
+  error: "red",
 };
 
 export const globalStyles = StyleSheet.create({
@@ -294,6 +295,17 @@ export const globalStyles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 5,
+  },
+  modalDeleteButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.error,
+  },
+  modalDeleteText: {
+    color: colors.error,
+    fontWeight: "bold",
   },
   fallback: {
     color: colors.onPrimary,

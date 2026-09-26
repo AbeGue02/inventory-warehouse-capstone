@@ -20,6 +20,7 @@ export default function EditItemModal(props: {
   draftItem: InventoryItemInterface | null;
   onCancel: () => void;
   onSave: () => void;
+  onDelete: () => void;
   onChangeDraftItem: (draftItem: InventoryItemInterface) => void;
 }) {
   return (
@@ -76,6 +77,15 @@ export default function EditItemModal(props: {
             />
 
             <View style={globalStyles.modalActions}>
+              <TouchableOpacity
+                style={globalStyles.modalDeleteButton}
+                onPress={props.onDelete}
+              >
+                <Text style={globalStyles.modalDeleteText}>Delete</Text>
+              </TouchableOpacity>
+
+              <View style={{ flex: 1 }} />
+
               <TouchableOpacity
                 style={globalStyles.modalCancelButton}
                 onPress={props.onCancel}

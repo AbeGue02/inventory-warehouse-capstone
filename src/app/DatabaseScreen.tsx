@@ -135,6 +135,35 @@ export default function DatabaseScreen() {
     setDraftItem({ ...item });
   };
 
+  // Delete the selected inventory item from the inventory list.
+  const deleteItem = async () => {
+    // Make sure there is a selected item with a valid ID before attempting to delete it.
+    if (!selectedItem?._id) return;
+
+    // Send a DELETE request to the API to remove the selected item.
+    const response = await fetch(
+      `/api/items?id=${encodeURIComponent(selectedItem._id)}`,
+      {
+        method: "DELETE",
+      },
+    );
+
+    const result = await response.json();
+
+    // Check if the delete operation was successful.
+    if (!response.ok) {
+      console.error("Failed to delete item:", result.error);
+      return;
+    }
+
+    // Remove the deleted item from the local state.
+    setItems((currentItems) =>
+      currentItems.filter((item) => item._id !== selectedItem._id),
+    );
+    setSelectedItem(null); // Clear the selected item after deletion.
+    setDraftItem(null); // Clear the draft item after deletion.
+  };
+
   // Save the changes made to the draft item back to the inventory list.
   const saveItem = async () => {
     if (!draftItem) return; // Ensure the draft item exists before proceeding.
@@ -249,6 +278,7 @@ export default function DatabaseScreen() {
               draftItem={draftItem}
               onCancel={() => setSelectedItem(null)}
               onSave={saveItem}
+              onDelete={deleteItem}
               onChangeDraftItem={setDraftItem}
             />
 
