@@ -10,6 +10,7 @@ import EditItemModal from "@/components/EditItemModal";
 import InventoryItem from "@/components/InventoryItem";
 import type { SortBy } from "@/components/SortMenuModal";
 import SortMenuModal from "@/components/SortMenuModal";
+import { useAuth } from "@/context/AuthContext";
 import type InventoryItemInterface from "@/interfaces/InventoryItem";
 import { FlashList } from "@shopify/flash-list";
 import { SymbolView } from "expo-symbols";
@@ -26,6 +27,8 @@ import {
 import { colors, globalStyles } from "../styles/global";
 
 export default function DatabaseScreen() {
+  const { company, authFetch } = useAuth(); // Get the current company and the authenticated fetch function from the Auth context.
+  const companyId = company?._id ?? ""; // The route is guarded, so a company is always selected.
   const [isFetchingItems, setIsFetchingItems] = useState<boolean>(true); // State to track if items are being fetched.
   const [items, setItems] = useState<InventoryItemInterface[]>([]); // State to hold the list of inventory items.
   const [selectedItem, setSelectedItem] =
@@ -35,7 +38,7 @@ export default function DatabaseScreen() {
     sku: "",
     quantity: 0,
     createdAt: new Date().toISOString(),
-    companyId: "", // TODO: Add Company ID handling here.
+    companyId,
   }); // State to hold a draft copy of the selected inventory item being edited.
   const [searchBarText, setSearchBarText] = useState<string>(""); // State to hold the text entered in the search bar.
   const [isSortMenuOpen, setIsSortMenuOpen] = useState<boolean>(false); // State to track if the sort menu is open.
@@ -120,14 +123,35 @@ export default function DatabaseScreen() {
   useEffect(() => {
     // Fetch inventory items when the component mounts
     async function fetchData() {
-      const response = await fetch("/api/items");
-      const data = await response.json();
-      setItems(data);
-      setIsFetchingItems(false);
+      try {
+        const response = await authFetch(
+          `/api/items?company=${encodeURIComponent(companyId)}`, // fetches items from API for the context'd company
+        );
+        const data = await response.json();
+        if (response.ok) {
+          setItems(
+            data.map((item: InventoryItemInterface & { company: string }) => ({
+              ...item,
+              companyId: item.company,
+            })),
+          );
+        } else {
+          console.error(
+            "Failed to fetch items:",
+            response.status,
+            data.error,
+            data.detail,
+          );
+        }
+      } catch (err) {
+        console.error("Failed to fetch items:", err);
+      } finally {
+        setIsFetchingItems(false);
+      }
     }
 
     fetchData();
-  }, []);
+  }, [authFetch, companyId]);
 
   // Open an inventory item for editing.
   const openItem = (item: InventoryItemInterface) => {
@@ -141,7 +165,7 @@ export default function DatabaseScreen() {
     if (!selectedItem?._id) return;
 
     // Send a DELETE request to the API to remove the selected item.
-    const response = await fetch(
+    const response = await authFetch(
       `/api/items?id=${encodeURIComponent(selectedItem._id)}`,
       {
         method: "DELETE",
@@ -171,7 +195,7 @@ export default function DatabaseScreen() {
     const itemId = selectedItem?._id; // Get the ID of the selected item, if it exists.
     const creating = !itemId; // Determine if we are creating a new item (no ID) or updating an existing one.
 
-    const response = await fetch(
+    const response = await authFetch(
       // Shapes API request URL based on whether we are creating or updating an item.
       creating ? "/api/items" : `/api/items?id=${encodeURIComponent(itemId)}`,
       {
@@ -181,7 +205,7 @@ export default function DatabaseScreen() {
           name: draftItem.name,
           sku: draftItem.sku,
           quantity: Number(draftItem.quantity),
-          company: draftItem.companyId,
+          company: companyId, // Include the company ID to associate the item with the correct company.
         }),
       },
     );
@@ -199,7 +223,7 @@ export default function DatabaseScreen() {
       sku: result.sku,
       quantity: result.quantity,
       createdAt: result.createdAt,
-      companyId: result.company, // TODO: ADD COMPANY CONTEXT LOGIC FOR CREATING OBJECTS
+      companyId: result.company,
     };
 
     setItems((currentItems) =>
@@ -224,7 +248,7 @@ export default function DatabaseScreen() {
                 sku: "",
                 quantity: 0,
                 createdAt: new Date().toISOString(),
-                companyId: "",
+                companyId,
               })
             }
           />

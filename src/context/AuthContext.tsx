@@ -1,51 +1,117 @@
 /**
  * AuthContext
- * Provides authentication context and state management for the application.
+ * Provides authentication and selected-database (company) state for the application.
  */
 
-import { createContext, useContext, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
+
+export interface Company {
+  _id: string;
+  name: string;
+  slug: string;
+}
 
 // Defines the shape of the authentication context value.
 interface AuthContextValue {
   isLoggedIn: boolean;
-  login: () => void;
+  token: string | null; // JWT token for the authenticated user.
+  company: Company | null;
+  login: (username: string, password: string) => Promise<string | null>;
+  signUp: (fields: {
+    name: string;
+    email: string;
+    username: string;
+    password: string;
+  }) => Promise<string | null>;
   logout: () => void;
+  selectCompany: (company: Company | null) => void; // Function to set the currently selected company.
+  authFetch: (input: string, init?: RequestInit) => Promise<Response>; // Function to perform authenticated fetch requests with the Bearer token.
 }
 
-// Creates the authentication context with default values.
-const AuthContext = createContext<AuthContextValue>({
-  isLoggedIn: false,
-  login: () => {},
-  logout: () => {},
-});
+const AuthContext = createContext<AuthContextValue | null>(null);
 
-// Provides the authentication context to the component tree.
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  // Manages the logged-in state of the user.
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [token, setToken] = useState<string | null>(null);
+  const [company, setCompany] = useState<Company | null>(null);
 
-  // Memoizes the context value to optimize performance and prevent unnecessary re-renders.
-  // Memoization is used here to make sure that the context value only changes when the `isLoggedIn` state changes,
-  // preventing unnecessary re-renders of child components.
+  // Sends a request to an auth endpoint
+  // I used useCallback to memoize the function and prevent unnecessary re-creations.
+  // Using other hooks could cause unnecessary re-creations of the function
+  const authenticate = useCallback(async (url: string, body: object) => {
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const result = await response.json();
+      if (!response.ok) return result.error ?? "Authentication failed";
+      setToken(result.token);
+      return null;
+    } catch {
+      return "Unable to reach the server";
+    }
+  }, []);
+
+  // Handles user login by calling the authenticate function with a username and password.
+  const login = useCallback(
+    (username: string, password: string) =>
+      authenticate("/api/users", { username, password }),
+    [authenticate],
+  );
+
+  // Handles user signup by calling the authenticate function with the provided fields.
+  const signUp = useCallback(
+    (fields: Parameters<AuthContextValue["signUp"]>[0]) =>
+      authenticate("/api/signup", fields),
+    [authenticate],
+  );
+
+  // Logs out the user by clearing the token and selected company.
+  const logout = useCallback(() => {
+    setToken(null);
+    setCompany(null);
+  }, []);
+
+  // Fetch wrapper that attaches the Bearer token.
+  // This makes it so all requests made with authFetch include the JWT token for authentication.
+  const authFetch = useCallback(
+    (input: string, init: RequestInit = {}) =>
+      fetch(input, {
+        ...init,
+        headers: { ...init.headers, Authorization: `Bearer ${token}` },
+      }),
+    [token],
+  );
+
+  // Memoize the context value to prevent unnecessary rerenders of children components.
   const value = useMemo(
     () => ({
-      isLoggedIn,
-      login: () => setIsLoggedIn(true),
-      logout: () => setIsLoggedIn(false),
+      isLoggedIn: token !== null,
+      token,
+      company,
+      login,
+      signUp,
+      logout,
+      selectCompany: setCompany,
+      authFetch,
     }),
-    [isLoggedIn], // Only re-render when isLoggedIn changes
+    [token, company, login, signUp, logout, authFetch],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-// Custom hook to access the authentication context.
-// Throws an error if used outside of the AuthProvider.
-// returns the authentication context value.
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error("useAuth must be used within an AuthProvider"); // Throws if used outside of the AuthProvider.
   }
   return context;
 }
