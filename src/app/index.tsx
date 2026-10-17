@@ -4,6 +4,7 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "expo-router";
+import { useState } from "react";
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -19,6 +20,9 @@ import { globalStyles } from "../styles/global";
 export default function Index() {
   const router = useRouter(); // Extracts the router object for navigation within the application.
   const { login } = useAuth(); // Extracts the login function from the authentication context.
+  const [username, setUsername] = useState<string>(""); // State for the username input field.
+  const [password, setPassword] = useState<string>(""); // State for the password input field.
+  const [error, setError] = useState<string | null>(null); // State for the error message.
 
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -30,11 +34,18 @@ export default function Index() {
         <View style={globalStyles.card}>
           <Text style={globalStyles.cardTitle}>Log In</Text>
 
-          <TextField label="Username" placeholder="Username" />
+          <TextField
+            label="Username"
+            placeholder="Username"
+            value={username}
+            onChangeText={setUsername}
+          />
 
           <TextField
             label="Password"
             placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
             secureTextEntry
             returnKeyType="done"
           />
@@ -43,14 +54,15 @@ export default function Index() {
             <Text style={globalStyles.linkText}>Forgot password?</Text>
           </TouchableOpacity>
 
+          {error && <Text style={{ color: "red" }}>{error}</Text>}
+
           <View style={globalStyles.formSpacer} />
 
           <TouchableOpacity
             style={globalStyles.primaryButton}
-            onPress={() => {
-              // Handle the Log In action here
-              login();
-              // router.replace("/DatabaseScreen");
+            onPress={async () => {
+              // The auth guard redirects to the database select screen on success.
+              setError(await login(username, password));
             }}
           >
             <Text style={globalStyles.primaryButtonText}>Log In</Text>

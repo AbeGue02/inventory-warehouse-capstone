@@ -5,6 +5,7 @@
   to run this type in terminal: npx tsx src/seed.ts 
 */
 
+import bcrypt from "bcryptjs"; // Added for hashing passwords
 import "dotenv/config";
 import mongoose from "mongoose";
 import Company from "./models/Company";
@@ -25,7 +26,7 @@ async function seed() {
     name: "Jane Doe",
     email: "jane.doe@example.com",
     username: "janedoe",
-    password: "password123",
+    password: await bcrypt.hash("password123", 10),
   });
 
   const company = await Company.create({

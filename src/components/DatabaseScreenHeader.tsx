@@ -10,16 +10,19 @@ import { globalStyles } from "../styles/global";
 
 export default function DatabaseScreenHeader() {
   const insets = useSafeAreaInsets();
-  const { logout } = useAuth();
+  const { logout, company, selectCompany } = useAuth(); // Access authentication context
 
   return (
     <View
       style={[globalStyles.databaseScreenHeader, { paddingTop: insets.top }]}
     >
-      {/* TODO: Implement database selection logic here */}
-      <TouchableOpacity style={globalStyles.databaseSelectButton}>
+      {/* Clearing the company makes the auth guard return to the select screen. */}
+      <TouchableOpacity
+        style={globalStyles.databaseSelectButton}
+        onPress={() => selectCompany(null)} // Clear the selected company to return to the select screen.
+      >
         <Text style={{ color: "white", fontSize: 20, fontWeight: "bold" }}>
-          Database
+          {company?.name ?? "Database"}
         </Text>
       </TouchableOpacity>
       <View style={{ flex: 1 }} />

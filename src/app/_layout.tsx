@@ -19,7 +19,7 @@ export default function RootLayout() {
 
 // Defines the stack navigator and its protected routes based on authentication status.
 function RootNavigator() {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, company } = useAuth();
 
   return (
     <Stack>
@@ -33,7 +33,13 @@ function RootNavigator() {
           options={{ title: "Sign Up", headerShown: false }}
         />
       </Stack.Protected>
-      <Stack.Protected guard={isLoggedIn}>
+      <Stack.Protected guard={isLoggedIn && company === null}>
+        <Stack.Screen
+          name="DatabaseSelectScreen"
+          options={{ title: "Select Database", headerShown: false }}
+        />
+      </Stack.Protected>
+      <Stack.Protected guard={isLoggedIn && company !== null}>
         <Stack.Screen
           name="DatabaseScreen"
           options={{ title: "Database", headerShown: false }}

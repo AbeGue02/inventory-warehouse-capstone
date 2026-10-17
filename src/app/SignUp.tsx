@@ -1,20 +1,26 @@
 import TextField from "@/components/TextField";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "expo-router";
+import { useState } from "react";
 import {
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  Text,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    Text,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
 } from "react-native";
 import { globalStyles } from "../styles/global";
 
 export default function SignUp() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { signUp } = useAuth();
+  const [name, setName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -29,36 +35,45 @@ export default function SignUp() {
           <TextField
             label="Name"
             placeholder="First M. Last"
+            value={name}
+            onChangeText={setName}
             returnKeyType="next"
           />
 
           <TextField
             label="Email"
             placeholder="email@example.com"
+            value={email}
+            onChangeText={setEmail}
             returnKeyType="next"
           />
 
           <TextField
             label="Username"
             placeholder="Username"
+            value={username}
+            onChangeText={setUsername}
             returnKeyType="next"
           />
 
           <TextField
             label="Password"
             placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
             secureTextEntry
             returnKeyType="done"
           />
+
+          {error && <Text style={{ color: "red" }}>{error}</Text>}
 
           <View style={globalStyles.formSpacer} />
 
           <TouchableOpacity
             style={globalStyles.primaryButton}
-            onPress={() => {
-              // Handle the Sign Up action here
-              login();
-              router.replace("/DatabaseScreen");
+            onPress={async () => {
+              // The auth guard redirects to the database select screen on success.
+              setError(await signUp({ name, email, username, password }));
             }}
           >
             <Text style={globalStyles.primaryButtonText}>Sign Up</Text>

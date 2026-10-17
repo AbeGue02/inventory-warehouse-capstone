@@ -4,11 +4,13 @@
  * Additionally allows the user to choose which company they interact with.
  */
 
+import AddItemButton from "@/components/AddItemButton";
 import DatabaseScreenHeader from "@/components/DatabaseScreenHeader";
 import EditItemModal from "@/components/EditItemModal";
 import InventoryItem from "@/components/InventoryItem";
 import type { SortBy } from "@/components/SortMenuModal";
 import SortMenuModal from "@/components/SortMenuModal";
+import { useAuth } from "@/context/AuthContext";
 import type InventoryItemInterface from "@/interfaces/InventoryItem";
 import { FlashList } from "@shopify/flash-list";
 import { SymbolView } from "expo-symbols";
@@ -25,6 +27,8 @@ import {
 import { colors, globalStyles } from "../styles/global";
 
 export default function DatabaseScreen() {
+  const { company, authFetch } = useAuth(); // Get the current company and the authenticated fetch function from the Auth context.
+  const companyId = company?._id ?? ""; // The route is guarded, so a company is always selected.
   const [isFetchingItems, setIsFetchingItems] = useState<boolean>(true); // State to track if items are being fetched.
   const [items, setItems] = useState<InventoryItemInterface[]>([]); // State to hold the list of inventory items.
   const [selectedItem, setSelectedItem] =
@@ -34,7 +38,7 @@ export default function DatabaseScreen() {
     sku: "",
     quantity: 0,
     createdAt: new Date().toISOString(),
-    companyId: "", // TODO: Add Company ID handling here.
+    companyId,
   }); // State to hold a draft copy of the selected inventory item being edited.
   const [searchBarText, setSearchBarText] = useState<string>(""); // State to hold the text entered in the search bar.
   const [isSortMenuOpen, setIsSortMenuOpen] = useState<boolean>(false); // State to track if the sort menu is open.
@@ -119,14 +123,35 @@ export default function DatabaseScreen() {
   useEffect(() => {
     // Fetch inventory items when the component mounts
     async function fetchData() {
-      const response = await fetch("/api/items");
-      const data = await response.json();
-      setItems(data);
-      setIsFetchingItems(false);
+      try {
+        const response = await authFetch(
+          `/api/items?company=${encodeURIComponent(companyId)}`, // fetches items from API for the context'd company
+        );
+        const data = await response.json();
+        if (response.ok) {
+          setItems(
+            data.map((item: InventoryItemInterface & { company: string }) => ({
+              ...item,
+              companyId: item.company,
+            })),
+          );
+        } else {
+          console.error(
+            "Failed to fetch items:",
+            response.status,
+            data.error,
+            data.detail,
+          );
+        }
+      } catch (err) {
+        console.error("Failed to fetch items:", err);
+      } finally {
+        setIsFetchingItems(false);
+      }
     }
 
     fetchData();
-  }, []);
+  }, [authFetch, companyId]);
 
   // Open an inventory item for editing.
   const openItem = (item: InventoryItemInterface) => {
@@ -134,29 +159,81 @@ export default function DatabaseScreen() {
     setDraftItem({ ...item });
   };
 
-  // Save the changes made to the draft item back to the inventory list.
-  const saveItem = () => {
-    // Ensure both selected and draft items exist before saving.
-    if (!selectedItem || !draftItem) return;
+  // Delete the selected inventory item from the inventory list.
+  const deleteItem = async () => {
+    // Make sure there is a selected item with a valid ID before attempting to delete it.
+    if (!selectedItem?._id) return;
 
-    // Update the item if it matches the selected item's SKU.
-    setItems((currentItems) =>
-      currentItems.map((item) =>
-        item.sku === selectedItem.sku ? { ...draftItem } : item,
-      ),
+    // Send a DELETE request to the API to remove the selected item.
+    const response = await authFetch(
+      `/api/items?id=${encodeURIComponent(selectedItem._id)}`,
+      {
+        method: "DELETE",
+      },
     );
 
-    // Clear the selected and draft items after saving.
-    setSelectedItem(null);
+    const result = await response.json();
 
-    // TODO: Add Company ID handling here.
-    setDraftItem({
-      name: "",
-      sku: "",
-      quantity: 0,
-      createdAt: new Date().toISOString(),
-      companyId: "",
-    });
+    // Check if the delete operation was successful.
+    if (!response.ok) {
+      console.error("Failed to delete item:", result.error);
+      return;
+    }
+
+    // Remove the deleted item from the local state.
+    setItems((currentItems) =>
+      currentItems.filter((item) => item._id !== selectedItem._id),
+    );
+    setSelectedItem(null); // Clear the selected item after deletion.
+    setDraftItem(null); // Clear the draft item after deletion.
+  };
+
+  // Save the changes made to the draft item back to the inventory list.
+  const saveItem = async () => {
+    if (!draftItem) return; // Ensure the draft item exists before proceeding.
+
+    const itemId = selectedItem?._id; // Get the ID of the selected item, if it exists.
+    const creating = !itemId; // Determine if we are creating a new item (no ID) or updating an existing one.
+
+    const response = await authFetch(
+      // Shapes API request URL based on whether we are creating or updating an item.
+      creating ? "/api/items" : `/api/items?id=${encodeURIComponent(itemId)}`,
+      {
+        method: creating ? "POST" : "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: draftItem.name,
+          sku: draftItem.sku,
+          quantity: Number(draftItem.quantity),
+          company: companyId, // Include the company ID to associate the item with the correct company.
+        }),
+      },
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      console.error("Failed to save item:", result.error);
+      return;
+    }
+
+    const savedItem: InventoryItemInterface = {
+      _id: result._id,
+      name: result.name,
+      sku: result.sku,
+      quantity: result.quantity,
+      createdAt: result.createdAt,
+      companyId: result.company,
+    };
+
+    setItems((currentItems) =>
+      creating
+        ? [...currentItems, savedItem]
+        : currentItems.map((item) => (item._id === itemId ? savedItem : item)),
+    );
+
+    setSelectedItem(null);
+    setDraftItem(null);
   };
 
   return (
@@ -164,6 +241,17 @@ export default function DatabaseScreen() {
       <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
         <View style={globalStyles.databaseScreen}>
           <DatabaseScreenHeader />
+          <AddItemButton
+            onPress={() =>
+              openItem({
+                name: "",
+                sku: "",
+                quantity: 0,
+                createdAt: new Date().toISOString(),
+                companyId,
+              })
+            }
+          />
           <View style={globalStyles.searchBarContainer}>
             <TextInput
               style={globalStyles.searchBar}
@@ -214,8 +302,14 @@ export default function DatabaseScreen() {
               draftItem={draftItem}
               onCancel={() => setSelectedItem(null)}
               onSave={saveItem}
+              onDelete={deleteItem}
+              onChangeDraftItem={setDraftItem}
             />
 
+            {/* 
+                Sort menu modal 
+                Only renders when the sort menu is open. 
+            */}
             <SortMenuModal
               visible={isSortMenuOpen}
               sortBy={sortBy}
