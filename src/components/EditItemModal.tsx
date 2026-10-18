@@ -4,6 +4,7 @@
  */
 
 import type InventoryItemInterface from "@/interfaces/InventoryItem";
+import { useEffect, useState } from "react";
 import {
   Keyboard,
   Modal,
@@ -23,6 +24,15 @@ export default function EditItemModal(props: {
   onDelete: () => void;
   onChangeDraftItem: (draftItem: InventoryItemInterface) => void;
 }) {
+  // Held as text so the field can be fully cleared; empty is stored as 0.
+  const [quantityText, setQuantityText] = useState("");
+
+  useEffect(() => {
+    if (props.visible) {
+      setQuantityText(props.draftItem?.quantity.toString() ?? "");
+    }
+  }, [props.visible, props.draftItem?._id]);
+
   return (
     <Modal
       visible={props.visible}
@@ -65,13 +75,15 @@ export default function EditItemModal(props: {
             <TextField
               label="Quantity"
               placeholder="Quantity"
-              value={props.draftItem?.quantity.toString()}
+              value={quantityText}
               onChangeText={(text) => {
+                const digits = text.replace(/\D/g, "");
+                setQuantityText(digits);
                 if (props.draftItem) {
-                  const quantity = parseInt(text);
-                  if (!isNaN(quantity)) {
-                    props.onChangeDraftItem({ ...props.draftItem, quantity });
-                  }
+                  props.onChangeDraftItem({
+                    ...props.draftItem,
+                    quantity: digits === "" ? 0 : parseInt(digits, 10),
+                  });
                 }
               }}
             />
