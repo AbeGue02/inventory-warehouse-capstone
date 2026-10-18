@@ -113,6 +113,9 @@ export default function DatabaseScreen() {
           <InventoryItem
             item={exactMatch}
             onPress={() => openItem(exactMatch)}
+            onChangeQuantity={(quantity) =>
+              updateQuantity(exactMatch, quantity)
+            }
           />
         </>
       )}
@@ -152,6 +155,36 @@ export default function DatabaseScreen() {
 
     fetchData();
   }, [authFetch, companyId]);
+
+  // Update an item's quantity, but revert if the request fails.
+  const updateQuantity = async (
+    item: InventoryItemInterface,
+    quantity: number,
+  ) => {
+    if (!item._id) return;
+    const setQuantity = (value: number) =>
+      setItems((currentItems) =>
+        currentItems.map((i) =>
+          i._id === item._id ? { ...i, quantity: value } : i,
+        ),
+      );
+
+    setQuantity(quantity);
+    try {
+      const response = await authFetch(
+        `/api/items?id=${encodeURIComponent(item._id)}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: item.name, sku: item.sku, quantity }),
+        },
+      );
+      if (!response.ok) throw new Error(`Status ${response.status}`);
+    } catch (err) {
+      console.error("Failed to update quantity:", err);
+      setQuantity(item.quantity);
+    }
+  };
 
   // Open an inventory item for editing.
   const openItem = (item: InventoryItemInterface) => {
@@ -287,7 +320,13 @@ export default function DatabaseScreen() {
                 data={isSearching ? searchResults.otherMatches : visibleItems}
                 ListHeaderComponent={searchHeader}
                 renderItem={({ item }) => (
-                  <InventoryItem item={item} onPress={() => openItem(item)} />
+                  <InventoryItem
+                    item={item}
+                    onPress={() => openItem(item)}
+                    onChangeQuantity={(quantity) =>
+                      updateQuantity(item, quantity)
+                    }
+                  />
                 )}
                 keyExtractor={(item) => item.sku}
               />
